@@ -1,3 +1,11 @@
+// #define BLYNK_TEMPLATE_ID "TMPLLLP4q0VX"
+// #define BLYNK_DEVICE_NAME "LCD Temperature  Humidity Sensor"
+// #define BLYNK_AUTH_TOKEN "hXzUhQefoOO-RkMPTkciXj5eiIWdwZKV"
+
+#define BLYNK_TEMPLATE_ID "TMPLLLP4q0VX"
+#define BLYNK_DEVICE_NAME "WoodstoveThermostat"
+#define BLYNK_AUTH_TOKEN "rXIt7yxsC1lhZh8VYo_JzcNMJFTLKn-k"
+
 #include <Arduino.h>
 #include <ESP8266WiFi.h>          //https://github.com/esp8266/Arduino
 // #include <ESP8266HTTPClient.h>
@@ -32,10 +40,10 @@ int wifiTimeout = 8000;
 #define BLYNK_PRINT Serial
 
 #include <BlynkSimpleEsp8266.h>
-char temp_auth[] = "b41c806b93a74d558a2cbcc61c82b04a";
-char stove_auth[] = "f11aca9b143a4f65abfa450369e8ff4c";
+// char temp_auth[] = "b41c806b93a74d558a2cbcc61c82b04a";
+// char stove_auth[] = "f11aca9b143a4f65abfa450369e8ff4c";
 // Specify the virtualPin on this ESP8266
-WidgetBridge Bridge_to_Woodstove(V20);
+// WidgetBridge Bridge_to_Woodstove(V20);
 BlynkTimer Timer;
 // *************************************************************************************
 
@@ -59,7 +67,7 @@ long humidtime = 0;
 long dht11time = 0;
 int temp_interval = 5;  // 10 seconds
 int humid_interval = 10;  // 5 seconds
-float dht11_interval = 1.5;  // 1.5 seconds
+float dht11_interval = 3.0;  // 1.5 seconds
 
 float count = 0;
 float sum = 0;
@@ -91,7 +99,7 @@ const int brightnessPin = D8;
 // SCL -> D1
 LiquidCrystal_I2C lcd(0x27,16,2);
 
-int setpoint = 78;
+int setpoint = 0;
 
 long standby_interval = 3000;   // ms
 long standby_timer = 0;
@@ -105,7 +113,7 @@ bool downstate = LOW;
 
 long adjust_temp_timer = 0;
 // Standby Timer
-long adjust_temp_interval = 10000;   // ms
+long adjust_temp_interval = 2000;   // ms
 bool adjust_setpoint_flag = false;
 
 long fast_button_wait_timer = 0;
@@ -122,14 +130,20 @@ long send_Blynk_Interval = 1000;
 int firewood_needed = 0;
 int firewood_needed_time = 0;
 
+long t1 = 0;
+long t2 = millis();
+
 #include "LCD_Functions.h"
 // ********************************************************************************
+
 
 #include "Callbacks.h"
 
 BLYNK_CONNECTED() {
+  Serial.println("Syncing All");
   Blynk.syncAll();
-  Bridge_to_Woodstove.setAuthToken(stove_auth);
+  t1 = millis();
+  // Bridge_to_Woodstove.setAuthToken(stove_auth);
 }
 
 
@@ -137,6 +151,7 @@ void setup() {
 
   Serial.begin(115200);
   while (! Serial);
+  t2 = millis();
 
   // set up the LCD's number of columns and rows:
   lcd.begin(16, 2);
@@ -145,7 +160,9 @@ void setup() {
   pinMode(brightnessPin, OUTPUT);
   attachInterrupt(digitalPinToInterrupt(uppin), UpPinISR, RISING);
   attachInterrupt(digitalPinToInterrupt(downpin), DownPinISR, RISING);
-  Blynk.begin(temp_auth, wifi_ssid, wifi_pass);
+  // Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, IPAddress(159,65,55,83), 8080); // use IP address of blynk.cloud, use port 8080
+  // Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, "ny3.blynk.cloud", 80); // use IP address of blynk.cloud, use port 8080
+  Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, IPAddress(64,225,16,22), 8080); // use IP address of blynk.cloud, use port 80
   printWifiStatus();
 
   OTA_Functions();
@@ -159,6 +176,13 @@ void setup() {
 
 void loop() {
   currenttime = millis();
+
+  // if (currenttime - t2 > 10000) {
+  //   Serial.println("Not connected to blynk server, resetting");
+  //   ESP.wdtDisable();
+  //   while (true){};
+  // }
+
   // Temperature and Humidity Update Logic is within LCDFunction()
   LCDFunction();
   ArduinoOTA.handle();

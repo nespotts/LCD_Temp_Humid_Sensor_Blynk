@@ -112,8 +112,8 @@ void SendBlynkUpdates() {
     // Send Temperature Updates after they have been changed Locally
 
     if (adjust_setpoint_flag) {
-      Blynk.virtualWrite(V4, setpoint);
-      Bridge_to_Woodstove.virtualWrite(V4, setpoint);
+      Blynk.virtualWrite(V16, setpoint);
+      // Bridge_to_Woodstove.virtualWrite(V4, setpoint);
       adjust_setpoint_flag = false;
     }
     // if (upstate == HIGH) {
@@ -152,9 +152,10 @@ void LCDFunction() {
       count = 0;
       sum = 0;
       // Send Temperature to App
-      Blynk.virtualWrite(V0, avg);
+      Serial.print("Sending temperature update: "); Serial.println(avg);
+      Blynk.virtualWrite(V15, avg);
       // Necessary to send Temperature to Damper Controller
-      Bridge_to_Woodstove.virtualWrite(V0, avg);
+      // Bridge_to_Woodstove.virtualWrite(V0, avg);
       temptime = millis();
     }
     // Send Humidity Update
