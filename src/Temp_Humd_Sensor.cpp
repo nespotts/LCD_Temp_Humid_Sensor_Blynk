@@ -1,9 +1,5 @@
-// #define BLYNK_TEMPLATE_ID "TMPLLLP4q0VX"
-// #define BLYNK_DEVICE_NAME "LCD Temperature  Humidity Sensor"
-// #define BLYNK_AUTH_TOKEN "hXzUhQefoOO-RkMPTkciXj5eiIWdwZKV"
-
 #define BLYNK_TEMPLATE_ID "TMPLLLP4q0VX"
-#define BLYNK_DEVICE_NAME "WoodstoveThermostat"
+#define BLYNK_TEMPLATE_NAME "Home Automation"
 #define BLYNK_AUTH_TOKEN "rXIt7yxsC1lhZh8VYo_JzcNMJFTLKn-k"
 
 #include <Arduino.h>
@@ -121,9 +117,6 @@ long fast_button_wait_interval = 800; // ms
 long fast_button_timer = 0;
 long fast_button_interval = 100;  // ms
 
-long slow_button_wait_timer = 0;
-long slow_button_wait_interval = 10;
-
 long send_Blynk_timer = 0;
 long send_Blynk_Interval = 1000;
 
@@ -140,8 +133,7 @@ long t2 = millis();
 #include "Callbacks.h"
 
 BLYNK_CONNECTED() {
-  Serial.println("Syncing All");
-  Blynk.syncAll();
+  syncPins();
   t1 = millis();
   // Bridge_to_Woodstove.setAuthToken(stove_auth);
 }
@@ -162,7 +154,8 @@ void setup() {
   attachInterrupt(digitalPinToInterrupt(downpin), DownPinISR, RISING);
   // Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, IPAddress(159,65,55,83), 8080); // use IP address of blynk.cloud, use port 8080
   // Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, "ny3.blynk.cloud", 80); // use IP address of blynk.cloud, use port 8080
-  Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, IPAddress(64,225,16,22), 8080); // use IP address of blynk.cloud, use port 80
+  // Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, IPAddress(64,225,16,22), 8080); // use IP address of blynk.cloud, use port 80
+  blynk_setup();
   printWifiStatus();
 
   OTA_Functions();
@@ -171,6 +164,9 @@ void setup() {
   lcd.init();     
   // Activate Backlight - Not sure if necessary
   lcd.backlight();
+
+  Timer.setInterval(500L, syncPins);
+  Timer.setInterval(5000L, recordSetpoint);
 }
 
 
@@ -187,16 +183,18 @@ void loop() {
   LCDFunction();
   ArduinoOTA.handle();
   Blynk.run();
+  Timer.run();
   
-  if (!Blynk.connected()) {
-    Serial.println("Wifi Disconnected");
-    Off.Update();
-    // Try to reconnect to preconfigured WiFi indefinitely (restarts module every 8s to refresh)
-    ConnectWifi();
-  }
-  else {
-    breathe.Update();
-  }
+  // if (!Blynk.connected()) {
+  //   Serial.println("Wifi Disconnected");
+  //   Off.Update();
+  //   // Try to reconnect to preconfigured WiFi indefinitely (restarts module every 8s to refresh)
+  //   ConnectWifi();
+  // }
+  // else {
+  //   breathe.Update();
+  // }
+  manageBlynkConnection2();
 
 }
 

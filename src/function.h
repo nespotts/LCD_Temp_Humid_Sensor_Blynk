@@ -1,4 +1,18 @@
 
+void blynk_setup() {
+  // Setup WiFi network
+  // WiFi.config(device_ip, gateway_ip, subnet_mask);
+  // WiFi.begin(ssid, pass);
+
+  // Setup Blynk
+  // Blynk.config(BLYNK_AUTH_TOKEN, "ny3.blynk.cloud", 80);
+  Blynk.begin(BLYNK_AUTH_TOKEN, wifi_ssid, wifi_pass, "blynk.cloud", 80);
+  while (Blynk.connect() == false) {
+    Off.Update();
+  }
+}
+
+
 void printWifiStatus() {
   // print the SSID of the network you're attached to:
   Serial.print("SSID: ");
@@ -38,6 +52,18 @@ void ConnectWifi() {
   Serial.println("\nConnected to wifi");
   printWifiStatus();
 }
+
+
+void manageBlynkConnection2() {
+  if (!WiFi.isConnected()) {    // changed from !Blynk.connected()
+    Serial.println("Wifi Disconnected");
+    ConnectWifi();
+    Off.Update();
+  } else {
+    breathe.Update();
+  }
+}
+
 
 void ReadDHT(String degree_scale) {
   if ((err = dht11.read(&temperature, &humidity, NULL)) != SimpleDHTErrSuccess) {

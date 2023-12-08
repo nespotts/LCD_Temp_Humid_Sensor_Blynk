@@ -41,7 +41,6 @@ void standby() {
 
 
 void ReadButtons() {
-
   if (digitalRead(uppin) == HIGH) {
     // Check whether it is time to start fast incrementing temperature
     if ((currenttime - fast_button_wait_timer) >= fast_button_wait_interval) {
@@ -84,7 +83,7 @@ void UpPinISR() {
   setpoint++;
   adjust_temp_timer = millis();
   fast_button_wait_timer = millis();
-  slow_button_wait_timer = millis();
+  send_Blynk_timer = millis();
   adjust_setpoint_flag = true;
 }
 
@@ -112,19 +111,16 @@ void SendBlynkUpdates() {
     // Send Temperature Updates after they have been changed Locally
 
     if (adjust_setpoint_flag) {
-      Blynk.virtualWrite(V16, setpoint);
-      // Bridge_to_Woodstove.virtualWrite(V4, setpoint);
+      Blynk.virtualWrite(V4, setpoint);
       adjust_setpoint_flag = false;
     }
     // if (upstate == HIGH) {
     //   // upstate = LOW;
     //   Blynk.virtualWrite(V4, setpoint);
-    //   Bridge_to_Woodstove.virtualWrite(V4, setpoint);
     // }
     // if (downstate == HIGH) {
     //   // downstate = LOW;
     //   Blynk.virtualWrite(V4, setpoint);
-    //   Bridge_to_Woodstove.virtualWrite(V4, setpoint);
     // }
   }
 }
@@ -153,7 +149,7 @@ void LCDFunction() {
       sum = 0;
       // Send Temperature to App
       Serial.print("Sending temperature update: "); Serial.println(avg);
-      Blynk.virtualWrite(V15, avg);
+      Blynk.virtualWrite(V0, avg);
       // Necessary to send Temperature to Damper Controller
       // Bridge_to_Woodstove.virtualWrite(V0, avg);
       temptime = millis();
